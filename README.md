@@ -3,6 +3,8 @@
 
 - [x] [Git](#git)
   - [Git 原理图](#git-原理图)
+  - [安装与用户信息配置](#安装与用户信息配置)
+  - [常用命令](#常用命令)
   - [多人协作](#多人协作)
   - [忽略某些文件](#忽略某些文件)
 - [x] [Docker](#docker)
@@ -14,14 +16,14 @@
 ### Git 原理图
 ![image-git1](./images/git-1.jpg)
 ![image-git2](./images/git-2.jpg)
-* 安装与用户信息配置
+### 安装与用户信息配置
 ```shell
 sudo apt-get install git
 
 git config --global user.name "lizy"
 git config --global user.email LizyZZZ@163.com
 ```
-* 常用命令  
+### 常用命令  
 ```Shell
 # (在目录下)创建仓库
 git init <dir_name>
