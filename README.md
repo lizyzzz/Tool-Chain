@@ -58,7 +58,7 @@ git mv [file] [newfile]
 
 # 查看分支
 git branch
-# 删除分支
+# 删除本地分支
 git branch -d <branch-name>
 
 
@@ -72,6 +72,9 @@ git checkout -
 # 将指定文件 <file> 恢复到最新的提交状态，丢弃所有未提交的更改，这对于撤销不需要的更改非常有用
 git checkout -- <file>
 
+# 合并当前分支和指定分支, 有冲突时需要手动解决冲突
+git merge <branch-name>
+
 # 查看提交历史(一行显示一次提交 / 逆序 / 作者)
 git log [--oneline][--reverse][--author]
 
@@ -82,7 +85,7 @@ git blame [选项] <文件路径>
 git push <远程主机名> <本地分支名>:<远程分支名>
 # 如果本地分支名与远程分支名相同，则可以省略冒号
 git push <远程主机名> <本地分支名>
-# 删除分支
+# 删除远程分支
 git push origin --delete master
 
 # 从远程获取代码并合并本地的版本
@@ -92,10 +95,54 @@ git pull <远程主机名> <远程分支名>
 ```
 
 ### 多人协作
+多人协作的工作模式通常是这样：  
+* 首先，可以试图用git push origin <branch-name>推送自己的修改；
+* 如果推送失败，则因为远程分支比你的本地更新，需要先用git pull试图合并；
+* 如果合并有冲突，则解决冲突，并在本地提交；
+* 没有冲突或者解决掉冲突后，再用git push origin <branch-name>推送就能成功！
+* 如果git pull提示no tracking information，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to <branch-name> origin/<branch-name>
 ```Shell
 # 克隆远程分支
 git clone <repo>
 
-# 
+# 当别的小伙伴从远程库clone时，默认情况下，你的小伙伴只能看到本地的master分支
+git branch
+* main # 只有 main 分支
 
+# 他要在 dev 分支上开发，就必须创建远程 origin 的 dev 分支到本地，用这个命令创建本地 dev 分支
+git checkout -b dev origin/dev
+
+# 他可以在 dev 上继续修改，然后，时不时地把 dev 分支 push 到远程
+git add env.txt
+git commit -m "add env"
+git push origin dev
+
+# 当我也修改了 env.txt, 并尝试推送
+git add env.txt
+git commit -m "add new env"
+git push origin dev       # 出现冲突, 推送失败
+
+# 先用 git pull 把最新的提交从 origin/dev 拉下来，然后，在本地合并，解决冲突，再推送
+git pull origin dev  # 也失败, 原因是没有指定本地dev分支与远程origin/dev分支的链接
+# 根据提示，设置dev和origin/dev的链接
+git branch --set-upstream-to=origin/dev dev
+
+# 再尝试 pull
+git pull origin dev
+# git pull成功，但是合并有冲突，需要手动解决, 解决后再次 commit 和 push
+git commit -m "fix env conflict"
+git push origin dev
+
+
+# 或许也可以使用 --no-rebase 来解决没有链接的问题(推荐)
+# 使用git pull --no-rebase 时，Git 会使用传统的合并方式(merge)，即将远程分支的更新合并到本地分支上，然后手动解决冲突, 并生成一个合并提交来整合这些更新;
+
+# 使用git pull --rebase 时，Git 会在合并远程分支更新之前，先将当前分支的提交临时保存起来，然后将这些提交依次应用到远程分支的最新提交上
+# 当你执行 rebase 操作时，Git 会逐个应用当前分支的每个提交到远程分支的最新提交上。
+# 如果在应用某个提交的过程中发现冲突，Git 会暂停 rebase 进程，让你解决冲突。
+# 你需要手动解决冲突，然后继续 rebase 进程。这个过程会一直持续直到所有提交都被成功应用
+git pull --no-rebase origin dev
 ```
+
+### 忽略某些文件
+`.gitignore` 文件, 支持通配符
