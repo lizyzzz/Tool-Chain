@@ -1,6 +1,15 @@
 # Tool-Chain
 各种工具命令的使用指南
 
+- [x] [Git](#git)
+  - [Git 原理图](#git-原理图)
+  - [多人协作](#多人协作)
+  - [忽略某些文件](#忽略某些文件)
+- [x] [Docker](#docker)
+- [x] [Valgrind](#valgrind-内存泄露分析工具)
+- [x] [Perf](#perf-性能分析工具)
+- [x] [Wireshark-tcpdump](#wireshark-tcpdump-网络分析工具)
+
 ## Git
 ### Git 原理图
 ![image-git1](./images/git-1.jpg)
@@ -146,3 +155,14 @@ git pull --no-rebase origin dev
 
 ### 忽略某些文件
 `.gitignore` 文件, 支持通配符
+
+## Docker
+
+
+## Valgrind 内存泄露分析工具
+
+
+## Perf 性能分析工具
+
+
+## Wireshark tcpdump 网络分析工具
