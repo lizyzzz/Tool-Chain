@@ -160,6 +160,170 @@ git pull --no-rebase origin dev
 
 ## Docker
 
+### Docker 安装
+```Shell
+# 官方脚本自动化安装
+curl -fsSL https://test.docker.com -o test-docker.sh
+sudo sh test-docker.sh
+# 测试
+docker run hello-world
+```
+
+### Docker 常用命令
+```Shell
+# -------------------  镜像相关操作 -----------------------------------
+# 在 https://hub.docker.com 免费注册一个, 已注册: lizy66
+# 登录需要输入用户名和密码，登录成功后，我们就可以从 docker hub 上拉取自己账号下的全部镜像
+docker login
+# 退出
+docker logout
+
+# 查找官方仓库中的镜像
+docker search <img_name>
+
+# 将官方 ubuntu 镜像下载到本地
+docker pull <img_name>
+
+# 查看 镜像
+docker images [OPTIONS] [REPOSITORY[:TAG]]
+# -a :列出本地所有的镜像(含中间映像层，默认情况下，过滤掉中间映像层)；
+# --digests :显示镜像的摘要信息；
+# -f :显示满足条件的镜像；
+# --format :指定返回值的模板文件；
+# --no-trunc :显示完整的镜像信息；
+# -q :只显示镜像ID
+
+# 根据 Dockerfile 创建镜像
+# 使用当前目录的 Dockerfile 创建镜像，标签为 runoob/ubuntu:v1
+docker build -t runoob/ubuntu:v1 . 
+# 通过 -f Dockerfile 文件的位置：
+docker build -f /path/to/a/Dockerfile .
+
+# 删除镜像
+docker rmi <IMAGE>
+
+# 标记本地镜像，将其归入某一仓库。
+docker tag [OPTIONS] IMAGE[:TAG] [REGISTRYHOST/][USERNAME/]NAME[:TAG]
+# 将镜像 ubuntu:15.10 标记为 runoob/ubuntu:v3 镜像
+docker tag ubuntu:15.10 runoob/ubuntu:v3
+
+# 从容器创建一个新的镜像
+docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+# -a :提交的镜像作者；
+# -c :使用Dockerfile指令来创建镜像；
+# -m :提交时的说明文字；
+# -p :在commit时，将容器暂停。
+# 将容器a404c6c174a2 保存为新的镜像,并添加提交人信息和说明信息
+docker commit -a "runoob.com" -m "my apache" a404c6c174a2  mymysql:v1 
+
+# 将本地的镜像上传到镜像仓库,要先登陆到镜像仓库
+docker push [OPTIONS] NAME[:TAG]
+# 上传本地镜像 myapache:v1 到镜像仓库中
+docker push myapache:v1
+
+# -------------------  容器相关操作 -----------------------------------
+
+# 运行容器(IMAGES 可以是 id)
+docker run [options] IMAGE [COMMAND] [ARGS...]
+# -a stdin: 指定标准输入输出内容类型，可选 STDIN/STDOUT/STDERR 三项；
+# -d: 后台运行容器，并返回容器ID；
+# -i: 以交互模式运行容器，通常与 -t 同时使用；
+# -P: 随机端口映射，容器内部端口随机映射到主机的端口
+# -p: 指定端口映射，格式为：主机(宿主)端口:容器端口
+# -t: 为容器重新分配一个伪输入终端，通常与 -i 同时使用；
+# --name="nginx-lb": 为容器指定一个名称；
+# --dns 8.8.8.8: 指定容器使用的DNS服务器，默认和宿主一致；
+# --dns-search example.com: 指定容器DNS搜索域名，默认和宿主一致；
+# -h "mars": 指定容器的hostname；
+# -e username="ritchie": 设置环境变量；
+# --env-file=[]: 从指定文件读入环境变量；
+# --cpuset="0-2" or --cpuset="0,1,2": 绑定容器到指定CPU运行；
+# -m :设置容器使用内存最大值；
+# --net="bridge": 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型；
+# --link=[]: 添加链接到另一个容器；
+# --expose=[]: 开放一个端口或一组端口；
+# --volume , -v: 绑定一个卷
+
+# 比如:
+# 使用docker镜像nginx:latest以后台模式启动一个容器,并将容器命名为mynginx
+docker run --name mynginx -d nginx:latest
+# 使用镜像 nginx:latest，以后台模式启动一个容器,将容器的 (任何ip)80 端口映射到主机的 80 端口,主机的目录 /data 映射到容器的 /data
+# 即另一个主机也可以通过本机 ip 地址的 80 端口访问 docker 容器内部的服务
+docker run -p 80:80 -v /data:/data -d nginx:latest
+# 绑定容器的 8080 端口，并将其映射到本地主机 127.0.0.1 的 80 端口上
+# 只能在本机通过 80 端口访问 docker 内部的8080服务
+docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
+
+# 启动一个容器但是不运行它(同 docker run)
+docker create [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+# 查看所有容器(-a 显示已经退出的)
+docker ps [-a]
+
+# 使用启动一个已停止的容器
+docker start <container_id>
+
+# 停止一个容器
+docker stop <container>
+
+# 重启一个容器
+docker restart <container>
+
+# 进入容器(并执行命令)
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+# -d :分离模式: 在后台运行
+# -i :即使没有附加也保持STDIN 打开
+# -t :分配一个伪终端
+# 比如: 在容器 mynginx 中以交互模式执行容器内 /root/runoob.sh 脚本:
+docker exec -it mynginx /bin/sh /root/runoob.sh
+# 在容器 mynginx 中开启一个交互模式的终端:
+runoob@runoob:~$ docker exec -i -t  mynginx /bin/bash
+root@b1a0703e41e7:/#
+
+# 用于容器与主机之间的数据拷贝
+docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-
+docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH
+# -L :保持源目标中的链接
+# 将主机/www/runoob目录拷贝到容器96f7f14e99ab的/www目录下
+docker cp /www/runoob 96f7f14e99ab:/www/
+# 将主机/www/runoob目录拷贝到容器96f7f14e99ab中，目录重命名为www
+docker cp /www/runoob 96f7f14e99ab:/www
+# 将容器96f7f14e99ab的/www目录拷贝到主机的/tmp目录中
+docker cp  96f7f14e99ab:/www /tmp/
+
+# 移除容器
+docker rm [OPTIONS] CONTAINER [CONTAINER...]
+# -f :通过 SIGKILL 信号强制删除一个运行中的容器。
+# -l :移除容器间的网络连接，而非容器本身。
+# -v :删除与容器关联的卷。
+# 删除所有已经停止的容器：
+docker rm $(docker ps -a -q)
+# 删除容器 nginx01, 并删除容器挂载的数据卷：
+docker rm -v nginx01
+
+# 获取容器/镜像的元数据
+docker inspect [OPTIONS] NAME|ID [NAME|ID...]
+docker inspect mysql:5.6
+
+# 杀掉一个运行中的容器
+docker kill [OPTIONS] CONTAINER [CONTAINER...]
+docker kill <container_id>
+# -s :向容器发送一个信号
+# 杀掉运行中的容器mynginx
+docker kill -s KILL mynginx
+
+# 查看容器中运行的进程信息，支持 ps 命令参数
+docker top [OPTIONS] CONTAINER [ps OPTIONS]
+
+# 获取容器的日志
+docker logs [OPTIONS] CONTAINER
+# -f : 跟踪日志输出
+# --since :显示某个开始时间的所有日志
+# -t : 显示时间戳
+# --tail :仅列出最新N条容器日志
+# 查看容器mynginx从2016年7月1日后的最新10条日志
+docker logs --since="2016-07-01" --tail=10 mynginx
+```
 
 ## Valgrind 内存泄露分析工具
 
