@@ -277,7 +277,7 @@ docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 # 比如: 在容器 mynginx 中以交互模式执行容器内 /root/runoob.sh 脚本:
 docker exec -it mynginx /bin/sh /root/runoob.sh
 # 在容器 mynginx 中开启一个交互模式的终端:
-runoob@runoob:~$ docker exec -i -t  mynginx /bin/bash
+runoob@runoob:~$ docker exec -it  mynginx /bin/bash
 root@b1a0703e41e7:/#
 
 # 用于容器与主机之间的数据拷贝
@@ -325,10 +325,110 @@ docker logs [OPTIONS] CONTAINER
 docker logs --since="2016-07-01" --tail=10 mynginx
 ```
 
-## Valgrind 内存泄露分析工具
+### Dockerfile 编写案例
+```Dockerfile
+# 使用官方 Ubuntu 作为基础镜像
+FROM ubuntu:latest
 
+# 作者信息
+LABEL maintainer="Your Name <your.email@example.com>"
+
+# 更新软件包列表并安装 Nginx
+RUN apt-get update && \
+    apt-get install -y nginx && \
+    apt-get clean
+
+# 将本地的 HTML 文件复制到 Nginx 默认的网站目录下
+COPY index.html /var/www/html/
+
+# 暴露容器的 80 端口，使外部可以访问 Nginx
+EXPOSE 80
+
+# 启动 Nginx 服务器
+CMD ["nginx", "-g", "daemon off;"]
+```
+```Shell
+# 一些常用参数
+docker build -t nginx:v3 .
+# 上下文路径，是指 docker 在构建镜像，有时候想要使用到本机的文件（比如复制），docker build 命令得知这个路径后，会将路径下的所有内容打包
+
+# 复制指令，从上下文目录中复制文件或者目录到容器里指定路径
+COPY [--chown=<user>:<group>] <源路径1>...  <目标路径>
+# [--chown=<user>:<group>]：可选参数，用户改变复制到容器内文件的拥有者和属组。
+# 比如
+COPY hom* /mydir/
+
+# 为启动的容器指定默认要运行的程序，程序运行结束，容器也就结束。CMD 指令指定的程序可被 docker run 命令行参数中指定要运行的程序所覆盖
+# 如果 Dockerfile 中如果存在多个 CMD 指令，仅最后一个生效
+CMD <shell 命令> 
+CMD ["<可执行文件或命令>","<param1>","<param2>",...] # (推荐使用)
+CMD ["<param1>","<param2>",...]  # 该写法是为 ENTRYPOINT 指令指定的程序提供默认参数
+
+# 类似于 CMD 指令，但其不会被 docker run 的命令行参数指定的指令所覆盖，而且这些命令行参数会被当作参数送给 ENTRYPOINT 指令指定的程序。
+# 但是, 如果运行 docker run 时使用了 --entrypoint 选项，将覆盖 ENTRYPOINT 指令指定的程序。
+ENTRYPOINT ["<executeable>","<param1>","<param2>",...]
+# 比如
+FROM nginx
+ENTRYPOINT ["nginx", "-c"] # 定参
+CMD ["/etc/nginx/nginx.conf"] # 变参 
+
+# 设置环境变量，定义了环境变量，那么在后续的指令中，就可以使用这个环境变量
+ENV <key> <value>
+ENV <key1>=<value1> <key2>=<value2>...
+
+# 构建参数，与 ENV 作用一致。不过作用域不一样。
+# ARG 设置的环境变量仅对 Dockerfile 内有效，也就是说只有 docker build 的过程中有效，构建好的镜像内不存在此环境变量
+ARG <参数名>[=<默认值>]
+
+# 定义匿名数据卷。在启动容器时忘记挂载数据卷，会自动挂载到匿名卷
+# 避免重要的数据，因容器重启而丢失，这是非常致命的。
+# 避免容器不断变大。
+VOLUME ["<路径1>", "<路径2>"...]
+VOLUME <路径>
+# 也可以通过启动容器时 -v 指定
+
+# 用来给镜像添加一些元数据（metadata），以键值对的形式，语法格式如下
+LABEL <key>=<value> <key>=<value> <key>=<value> ...
+```
+
+
+## Valgrind 内存泄露分析工具
+```Shell
+# 安装
+sudo apt-get install valgrind
+
+# 内存泄露检查
+valgrind --leak-check=full ./my_program
+
+```
 
 ## Perf 性能分析工具
+```Shell
+# 安装, 通常与 Linux 内核一起打包。你可以使用包管理器来安装 Perf
+sudo apt-get install linux-tools-common linux-tools-generic
+
+# CPU 性能分析(包括指令执行数、CPU 周期、缓存命中率等)
+perf stat ./my_program
+
+# 函数级性能分析
+# 运行 my_program 并记录下所有的事件，然后可以使用 perf report 命令来生成函数级别的性能分析报告
+perf record ./my_program
+perf report
+```
 
 
 ## Wireshark tcpdump 网络分析工具
+```Shell
+# 捕获指定网络接口上的所有数据包
+sudo tcpdump -i <interface>
+# 其中 <interface> 是要捕获的网络接口，如 eth0、wlan0
+# 捕获指定 IP 地址的数据包
+sudo tcpdump -i <interface> host <ip_address>
+# 捕获指定端口的数据包
+sudo tcpdump -i <interface> port <port_number>
+
+# 使用 -w 参数可以将捕获的数据包保存到文件中，以便后续分析
+sudo tcpdump -i <interface> -w capture.pcap
+
+# capture.pcap 可以用 Wireshark 打开
+```
