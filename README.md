@@ -103,6 +103,25 @@ git push origin --delete master
 git pull <远程主机名> <远程分支名>:<本地分支名>
 # 如果远程分支是与当前分支合并，则冒号后面的部分可以省略
 git pull <远程主机名> <远程分支名>
+
+
+# 子模块管理
+
+# 添加子模块(初始化)
+git submodule add <repository_url> <path>
+# 初始化子模块
+git submodule init 
+# 更新子模块
+git submodule update [--init][--recursive] 
+# 带 --init 参数可以在子模块还没初始化时直接初始化 
+# --recursive 参数递归更新子模块
+
+# 查看子模块信息
+git submodule status
+# 移除子模块
+git submodule deinit <path> # 取消对子模块的跟踪
+git rm <path>               # 将子模块从当前仓库中移除
+
 ```
 
 ### 多人协作
